@@ -16,7 +16,7 @@ using ForzaDualSense.Extensions;
 namespace ForzaDualSense
 {
     class Program
-    {        
+    {
         static Settings settings = new Settings();
         static bool verbose = false;
         static bool logToCsv = false;
@@ -35,37 +35,35 @@ namespace ForzaDualSense
             Packet p = new Packet();
             CsvData csvRecord = new CsvData();
             //Set the controller to do this for
-            int controllerIndex = 0;
-            int resistance = 0;
-            int filteredResistance = 0;
+            int controllerIndex = 0;           
+           
+            //It should probably always be uniformly stiff
+            float avgAccel = (float)Math.Sqrt((settings.TURN_ACCEL_MOD * (data.Sled.AccelerationX * data.Sled.AccelerationX)) + (settings.FORWARD_ACCEL_MOD * (data.Sled.AccelerationZ * data.Sled.AccelerationZ)));
+            int resistance = (int)Math.Floor(Map(avgAccel, 0, settings.ACCELRATION_LIMIT, settings.MIN_THROTTLE_RESISTANCE, settings.MAX_THROTTLE_RESISTANCE));
+            int filteredResistance = EWMA(resistance, lastThrottleResistance, settings.EWMA_ALPHA_THROTTLE);
             //Initialize our array of instructions
             p.instructions = new Instruction[4];
+            
             if (logToCsv)
             {
-                csvRecord.time = data.TimestampMS;
-                csvRecord.AccelerationX = data.AccelerationX;
-                csvRecord.AccelerationY = data.AccelerationY;
-                csvRecord.AccelerationZ = data.AccelerationZ;
-                csvRecord.Brake = data.Brake;
-                csvRecord.TireCombinedSlipFrontLeft = data.TireCombinedSlipFrontLeft;
-                csvRecord.TireCombinedSlipFrontRight = data.TireCombinedSlipFrontRight;
-                csvRecord.TireCombinedSlipRearLeft = data.TireCombinedSlipRearLeft;
-                csvRecord.TireCombinedSlipRearRight = data.TireCombinedSlipRearRight;
-                csvRecord.CurrentEngineRpm = data.CurrentEngineRpm;
-            }
-            //Set the updates for the right Trigger(Throttle)
-            p.instructions[2].type = InstructionType.TriggerUpdate;
-            //It should probably always be uniformly stiff
-            float avgAccel = (float)Math.Sqrt((settings.TURN_ACCEL_MOD * (data.AccelerationX * data.AccelerationX)) + (settings.FORWARD_ACCEL_MOD * (data.AccelerationZ * data.AccelerationZ)));
-            resistance = (int)Math.Floor(Map(avgAccel, 0, settings.ACCELRATION_LIMIT, settings.MIN_THROTTLE_RESISTANCE, settings.MAX_THROTTLE_RESISTANCE));
-            filteredResistance = EWMA(resistance, lastThrottleResistance, settings.EWMA_ALPHA_THROTTLE);
-            if (logToCsv)
-            {
+                csvRecord.time = data.Sled.TimestampMS;
+                csvRecord.AccelerationX = data.Sled.AccelerationX;
+                csvRecord.AccelerationY = data.Sled.AccelerationY;
+                csvRecord.AccelerationZ = data.Sled.AccelerationZ;
+                csvRecord.Brake = data.Dash.Brake;
+                csvRecord.TireCombinedSlipFrontLeft = data.Sled.TireCombinedSlipFrontLeft;
+                csvRecord.TireCombinedSlipFrontRight = data.Sled.TireCombinedSlipFrontRight;
+                csvRecord.TireCombinedSlipRearLeft = data.Sled.TireCombinedSlipRearLeft;
+                csvRecord.TireCombinedSlipRearRight = data.Sled.TireCombinedSlipRearRight;
+                csvRecord.CurrentEngineRpm = data.Sled.CurrentEngineRpm;           
                 csvRecord.AverageAcceleration = avgAccel;
                 csvRecord.ThrottleResistance = resistance;
                 csvRecord.ThrottleResistance_filtered = filteredResistance;
             }
+
             lastThrottleResistance = filteredResistance;
+            //Set the updates for the right Trigger(Throttle)
+            p.instructions[2].type = InstructionType.TriggerUpdate;
             p.instructions[2].parameters = new object[] { controllerIndex, Trigger.Right, TriggerMode.Resistance, 0, filteredResistance };
 
             if (verbose)
@@ -74,7 +72,7 @@ namespace ForzaDualSense
             }
             //Update the left(Brake) trigger
             p.instructions[0].type = InstructionType.TriggerUpdate;
-            float combinedTireSlip = (Math.Abs(data.TireCombinedSlipFrontLeft) + Math.Abs(data.TireCombinedSlipFrontRight) + Math.Abs(data.TireCombinedSlipRearLeft) + Math.Abs(data.TireCombinedSlipRearRight)) / 4;
+            float combinedTireSlip = (Math.Abs(data.Sled.TireCombinedSlipFrontLeft) + Math.Abs(data.Sled.TireCombinedSlipFrontRight) + Math.Abs(data.Sled.TireCombinedSlipRearLeft) + Math.Abs(data.Sled.TireCombinedSlipRearRight)) / 4;
 
 
 
@@ -92,10 +90,10 @@ namespace ForzaDualSense
             // }
             // //Some grip lost, begin to vibrate according to the amount of grip lost
             // else 
-            if (combinedTireSlip > settings.GRIP_LOSS_VAL && data.Brake > settings.BRAKE_VIBRATION__MODE_START)
+            if (combinedTireSlip < settings.GRIP_LOSS_VAL && data.Dash.Brake < settings.BRAKE_VIBRATION__MODE_START)
             {
                 freq = settings.MAX_BRAKE_VIBRATION - (int)Math.Floor(Map(combinedTireSlip, settings.GRIP_LOSS_VAL, 1, 0, settings.MAX_BRAKE_VIBRATION));
-                resistance = settings.MIN_BRAKE_STIFFNESS - (int)Math.Floor(Map(data.Brake, 0, 255, settings.MAX_BRAKE_STIFFNESS, settings.MIN_BRAKE_STIFFNESS));
+                resistance = settings.MIN_BRAKE_STIFFNESS - (int)Math.Floor(Map(data.Dash.Brake, 0, 255, settings.MAX_BRAKE_STIFFNESS, settings.MIN_BRAKE_STIFFNESS));
                 filteredResistance = EWMA(resistance, lastBrakeResistance, settings.EWMA_ALPHA_BRAKE);
                 filteredFreq = EWMA(freq, lastBrakeFreq, settings.EWMA_ALPHA_BRAKE_FREQ);
                 lastBrakeFreq = filteredFreq;
@@ -120,7 +118,7 @@ namespace ForzaDualSense
             else
             {
                 //By default, Increasingly resistant to force
-                resistance = (int)Math.Floor(Map(data.Brake, 0, 255, settings.MIN_BRAKE_RESISTANCE, settings.MAX_BRAKE_RESISTANCE));
+                resistance = (int)Math.Floor(Map(data.Dash.Brake, 0, 255, settings.MIN_BRAKE_RESISTANCE, settings.MAX_BRAKE_RESISTANCE));
                 filteredResistance = EWMA(resistance, lastBrakeResistance, settings.EWMA_ALPHA_BRAKE);
                 lastBrakeResistance = filteredResistance;
                 p.instructions[0].parameters = new object[] { controllerIndex, Trigger.Left, TriggerMode.Resistance, 0, filteredResistance };
@@ -129,7 +127,7 @@ namespace ForzaDualSense
             }
             if (verbose)
             {
-                Console.WriteLine($"Brake: {data.Brake}; Brake Resistance: {filteredResistance}; Tire Slip: {combinedTireSlip}");
+                Console.WriteLine($"Brake: {data.Dash.Brake}; Brake Resistance: {filteredResistance}; Tire Slip: {combinedTireSlip}");
             }
             if (logToCsv)
             {
@@ -143,10 +141,10 @@ namespace ForzaDualSense
             //Update the light bar
             p.instructions[1].type = InstructionType.RGBUpdate;
             //Currently registers intensity on the green channel based on engnine RPM as a percantage of the maxium. 
-            p.instructions[1].parameters = new object[] { controllerIndex, 0, (int)Math.Floor((data.CurrentEngineRpm / data.EngineMaxRpm) * 255), 0 };
+            p.instructions[1].parameters = new object[] { controllerIndex, 0, (int)Math.Floor((data.Sled.CurrentEngineRpm / data.Sled.EngineMaxRpm) * 255), 0 };
             if (verbose)
             {
-                Console.WriteLine($"Engine RPM: {data.CurrentEngineRpm}");
+                Console.WriteLine($"Engine RPM: {data.Sled.CurrentEngineRpm}");
 
             }
             if (logToCsv)
@@ -455,7 +453,7 @@ namespace ForzaDualSense
                     forzaProcesses += Process.GetProcessesByName("ForzaMotorsport7").Length;
                     Process[] DSX = Process.GetProcessesByName("DualSenseX");
                     Process[] cur = Process.GetProcesses();
-                    while (forzaProcesses == 0 || DSX.Length == 0)
+                    while (forzaProcesses == 0 || DSX.Length + DSX_2.Length == 0)
                     {
                         if (forzaProcesses == 0)
                         {
@@ -586,98 +584,101 @@ namespace ForzaDualSense
         //Parses data from Forza into a DataPacket
         static DataPacket ParseData(byte[] packet)
         {
-            DataPacket data = new DataPacket();
+            return new DataPacket()
+            {
+                Sled = new SledData()
+                {
+                    IsRaceOn = packet.IsRaceOn(),
+                    TimestampMS = packet.TimestampMs(),
+                    EngineMaxRpm = packet.EngineMaxRpm(),
+                    EngineIdleRpm = packet.EngineIdleRpm(),
+                    CurrentEngineRpm = packet.CurrentEngineRpm(),
+                    AccelerationX = packet.AccelerationX(),
+                    AccelerationY = packet.AccelerationY(),
+                    AccelerationZ = packet.AccelerationZ(),
+                    VelocityX = packet.VelocityX(),
+                    VelocityY = packet.VelocityY(),
+                    VelocityZ = packet.VelocityZ(),
+                    AngularVelocityX = packet.AngularVelocityX(),
+                    AngularVelocityY = packet.AngularVelocityY(),
+                    AngularVelocityZ = packet.AngularVelocityZ(),
+                    Yaw = packet.Yaw(),
+                    Pitch = packet.Pitch(),
+                    Roll = packet.Roll(),
+                    NormalizedSuspensionTravelFrontLeft = packet.NormSuspensionTravelFl(),
+                    NormalizedSuspensionTravelFrontRight = packet.NormSuspensionTravelFr(),
+                    NormalizedSuspensionTravelRearLeft = packet.NormSuspensionTravelRl(),
+                    NormalizedSuspensionTravelRearRight = packet.NormSuspensionTravelRr(),
+                    TireSlipRatioFrontLeft = packet.TireSlipRatioFl(),
+                    TireSlipRatioFrontRight = packet.TireSlipRatioFr(),
+                    TireSlipRatioRearLeft = packet.TireSlipRatioRl(),
+                    TireSlipRatioRearRight = packet.TireSlipRatioRr(),
+                    WheelRotationSpeedFrontLeft = packet.WheelRotationSpeedFl(),
+                    WheelRotationSpeedFrontRight = packet.WheelRotationSpeedFr(),
+                    WheelRotationSpeedRearLeft = packet.WheelRotationSpeedRl(),
+                    WheelRotationSpeedRearRight = packet.WheelRotationSpeedRr(),
+                    WheelOnRumbleStripFrontLeft = packet.WheelOnRumbleStripFl(),
+                    WheelOnRumbleStripFrontRight = packet.WheelOnRumbleStripFr(),
+                    WheelOnRumbleStripRearLeft = packet.WheelOnRumbleStripRl(),
+                    WheelOnRumbleStripRearRight = packet.WheelOnRumbleStripRr(),
+                    WheelInPuddleDepthFrontLeft = packet.WheelInPuddleFl(),
+                    WheelInPuddleDepthFrontRight = packet.WheelInPuddleFr(),
+                    WheelInPuddleDepthRearLeft = packet.WheelInPuddleRl(),
+                    WheelInPuddleDepthRearRight = packet.WheelInPuddleRr(),
+                    SurfaceRumbleFrontLeft = packet.SurfaceRumbleFl(),
+                    SurfaceRumbleFrontRight = packet.SurfaceRumbleFr(),
+                    SurfaceRumbleRearLeft = packet.SurfaceRumbleRl(),
+                    SurfaceRumbleRearRight = packet.SurfaceRumbleRr(),
+                    TireSlipAngleFrontLeft = packet.TireSlipAngleFl(),
+                    TireSlipAngleFrontRight = packet.TireSlipAngleFr(),
+                    TireSlipAngleRearLeft = packet.TireSlipAngleRl(),
+                    TireSlipAngleRearRight = packet.TireSlipAngleRr(),
+                    TireCombinedSlipFrontLeft = packet.TireCombinedSlipFl(),
+                    TireCombinedSlipFrontRight = packet.TireCombinedSlipFr(),
+                    TireCombinedSlipRearLeft = packet.TireCombinedSlipRl(),
+                    TireCombinedSlipRearRight = packet.TireCombinedSlipRr(),
+                    SuspensionTravelMetersFrontLeft = packet.SuspensionTravelMetersFl(),
+                    SuspensionTravelMetersFrontRight = packet.SuspensionTravelMetersFr(),
+                    SuspensionTravelMetersRearLeft = packet.SuspensionTravelMetersRl(),
+                    SuspensionTravelMetersRearRight = packet.SuspensionTravelMetersRr(),
+                    CarOrdinal = packet.CarOrdinal(),
+                    CarClass = packet.CarClass(),
+                    CarPerformanceIndex = packet.CarPerformanceIndex(),
+                    DrivetrainType = packet.DriveTrain(),
+                    NumCylinders = packet.NumCylinders(),
 
-            // sled
-            data.IsRaceOn = packet.IsRaceOn();
-            data.TimestampMS = packet.TimestampMs();
-            data.EngineMaxRpm = packet.EngineMaxRpm();
-            data.EngineIdleRpm = packet.EngineIdleRpm();
-            data.CurrentEngineRpm = packet.CurrentEngineRpm();
-            data.AccelerationX = packet.AccelerationX();
-            data.AccelerationY = packet.AccelerationY();
-            data.AccelerationZ = packet.AccelerationZ();
-            data.VelocityX = packet.VelocityX();
-            data.VelocityY = packet.VelocityY();
-            data.VelocityZ = packet.VelocityZ();
-            data.AngularVelocityX = packet.AngularVelocityX();
-            data.AngularVelocityY = packet.AngularVelocityY();
-            data.AngularVelocityZ = packet.AngularVelocityZ();
-            data.Yaw = packet.Yaw();
-            data.Pitch = packet.Pitch();
-            data.Roll = packet.Roll();
-            data.NormalizedSuspensionTravelFrontLeft = packet.NormSuspensionTravelFl();
-            data.NormalizedSuspensionTravelFrontRight = packet.NormSuspensionTravelFr();
-            data.NormalizedSuspensionTravelRearLeft = packet.NormSuspensionTravelRl();
-            data.NormalizedSuspensionTravelRearRight = packet.NormSuspensionTravelRr();
-            data.TireSlipRatioFrontLeft = packet.TireSlipRatioFl();
-            data.TireSlipRatioFrontRight = packet.TireSlipRatioFr();
-            data.TireSlipRatioRearLeft = packet.TireSlipRatioRl();
-            data.TireSlipRatioRearRight = packet.TireSlipRatioRr();
-            data.WheelRotationSpeedFrontLeft = packet.WheelRotationSpeedFl();
-            data.WheelRotationSpeedFrontRight = packet.WheelRotationSpeedFr();
-            data.WheelRotationSpeedRearLeft = packet.WheelRotationSpeedRl();
-            data.WheelRotationSpeedRearRight = packet.WheelRotationSpeedRr();
-            data.WheelOnRumbleStripFrontLeft = packet.WheelOnRumbleStripFl();
-            data.WheelOnRumbleStripFrontRight = packet.WheelOnRumbleStripFr();
-            data.WheelOnRumbleStripRearLeft = packet.WheelOnRumbleStripRl();
-            data.WheelOnRumbleStripRearRight = packet.WheelOnRumbleStripRr();
-            data.WheelInPuddleDepthFrontLeft = packet.WheelInPuddleFl();
-            data.WheelInPuddleDepthFrontRight = packet.WheelInPuddleFr();
-            data.WheelInPuddleDepthRearLeft = packet.WheelInPuddleRl();
-            data.WheelInPuddleDepthRearRight = packet.WheelInPuddleRr();
-            data.SurfaceRumbleFrontLeft = packet.SurfaceRumbleFl();
-            data.SurfaceRumbleFrontRight = packet.SurfaceRumbleFr();
-            data.SurfaceRumbleRearLeft = packet.SurfaceRumbleRl();
-            data.SurfaceRumbleRearRight = packet.SurfaceRumbleRr();
-            data.TireSlipAngleFrontLeft = packet.TireSlipAngleFl();
-            data.TireSlipAngleFrontRight = packet.TireSlipAngleFr();
-            data.TireSlipAngleRearLeft = packet.TireSlipAngleRl();
-            data.TireSlipAngleRearRight = packet.TireSlipAngleRr();
-            data.TireCombinedSlipFrontLeft = packet.TireCombinedSlipFl();
-            data.TireCombinedSlipFrontRight = packet.TireCombinedSlipFr();
-            data.TireCombinedSlipRearLeft = packet.TireCombinedSlipRl();
-            data.TireCombinedSlipRearRight = packet.TireCombinedSlipRr();
-            data.SuspensionTravelMetersFrontLeft = packet.SuspensionTravelMetersFl();
-            data.SuspensionTravelMetersFrontRight = packet.SuspensionTravelMetersFr();
-            data.SuspensionTravelMetersRearLeft = packet.SuspensionTravelMetersRl();
-            data.SuspensionTravelMetersRearRight = packet.SuspensionTravelMetersRr();
-            data.CarOrdinal = packet.CarOrdinal();
-            data.CarClass = packet.CarClass();
-            data.CarPerformanceIndex = packet.CarPerformanceIndex();
-            data.DrivetrainType = packet.DriveTrain();
-            data.NumCylinders = packet.NumCylinders();
-
-            // dash
-            data.PositionX = packet.PositionX();
-            data.PositionY = packet.PositionY();
-            data.PositionZ = packet.PositionZ();
-            data.Speed = packet.Speed();
-            data.Power = packet.Power();
-            data.Torque = packet.Torque();
-            data.TireTempFl = packet.TireTempFl();
-            data.TireTempFr = packet.TireTempFr();
-            data.TireTempRl = packet.TireTempRl();
-            data.TireTempRr = packet.TireTempRr();
-            data.Boost = packet.Boost();
-            data.Fuel = packet.Fuel();
-            data.Distance = packet.Distance();
-            data.BestLapTime = packet.BestLapTime();
-            data.LastLapTime = packet.LastLapTime();
-            data.CurrentLapTime = packet.CurrentLapTime();
-            data.CurrentRaceTime = packet.CurrentRaceTime();
-            data.Lap = packet.Lap();
-            data.RacePosition = packet.RacePosition();
-            data.Accelerator = packet.Accelerator();
-            data.Brake = packet.Brake();
-            data.Clutch = packet.Clutch();
-            data.Handbrake = packet.Handbrake();
-            data.Gear = packet.Gear();
-            data.Steer = packet.Steer();
-            data.NormalDrivingLine = packet.NormalDrivingLine();
-            data.NormalAiBrakeDifference = packet.NormalAiBrakeDifference();
-
-            return data;
+                },
+                Dash = new DashData()
+                {
+                    PositionX = packet.PositionX(),
+                    PositionY = packet.PositionY(),
+                    PositionZ = packet.PositionZ(),
+                    Speed = packet.Speed(),
+                    Power = packet.Power(),
+                    Torque = packet.Torque(),
+                    TireTempFl = packet.TireTempFl(),
+                    TireTempFr = packet.TireTempFr(),
+                    TireTempRl = packet.TireTempRl(),
+                    TireTempRr = packet.TireTempRr(),
+                    Boost = packet.Boost(),
+                    Fuel = packet.Fuel(),
+                    Distance = packet.Distance(),
+                    BestLapTime = packet.BestLapTime(),
+                    LastLapTime = packet.LastLapTime(),
+                    CurrentLapTime = packet.CurrentLapTime(),
+                    CurrentRaceTime = packet.CurrentRaceTime(),
+                    Lap = packet.Lap(),
+                    RacePosition = packet.RacePosition(),
+                    Accelerator = packet.Accelerator(),
+                    Brake = packet.Brake(),
+                    Clutch = packet.Clutch(),
+                    Handbrake = packet.Handbrake(),
+                    Gear = packet.Gear(),
+                    Steer = packet.Steer(),
+                    NormalDrivingLine = packet.NormalDrivingLine(),
+                    NormalAiBrakeDifference = packet.NormalAiBrakeDifference(),
+                }
+            };
         }
 
         //Support different standards
