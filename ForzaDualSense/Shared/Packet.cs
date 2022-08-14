@@ -1,4 +1,4 @@
-﻿namespace ForzaDSX.Shared
+﻿namespace ForzaDualSense.Shared
 {
     public class Packet
     {

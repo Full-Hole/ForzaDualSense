@@ -1,6 +1,6 @@
-﻿using ForzaDSX.Enums;
+﻿using ForzaDualSense.Enums;
 
-namespace ForzaDSX.Shared
+namespace ForzaDualSense.Shared
 {
     public struct Instruction
     {

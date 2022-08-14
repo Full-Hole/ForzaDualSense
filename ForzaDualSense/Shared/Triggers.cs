@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Newtonsoft.Json;
 
-namespace ForzaDSX.Shared
+namespace ForzaDualSense.Shared
 {
     //Needed to communicate with DualSenseX
     public static class Triggers

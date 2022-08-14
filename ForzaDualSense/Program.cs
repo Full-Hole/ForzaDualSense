@@ -8,8 +8,8 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using CsvHelper;
 using System.Globalization;
-using ForzaDSX.Enums;
-using ForzaDSX.Shared;
+using ForzaDualSense.Enums;
+using ForzaDualSense.Shared;
 
 namespace ForzaDualSense
 {
