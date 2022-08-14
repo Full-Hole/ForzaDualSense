@@ -3,19 +3,19 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using CsvHelper;
 using System.Globalization;
-using ForzaDualSense.Enums;
+using ForzaDSX.Enums;
+using ForzaDSX.Shared;
 
 namespace ForzaDualSense
 {
     class Program
     {
-        public const String VERSION = "0.2.2";
+        public const String VERSION = "0.3.0";
         static Settings settings = new Settings();
         static bool verbose = false;
         static bool logToCsv = false;
@@ -697,32 +697,5 @@ namespace ForzaDualSense
         }
 
 
-    }
-
-    //Needed to communicate with DualSenseX
-    public static class Triggers
-    {
-        public static IPAddress localhost = new IPAddress(new byte[] { 127, 0, 0, 1 });
-
-        public static string PacketToJson(Packet packet)
-        {
-            return Newtonsoft.Json.JsonConvert.SerializeObject(packet);
-        }
-
-        public static Packet JsonToPacket(string json)
-        {
-            return JsonConvert.DeserializeObject<Packet>(json);
-        }
-    }
-
-    public struct Instruction
-    {
-        public InstructionType type;
-        public object[] parameters;
-    }
-
-    public class Packet
-    {
-        public Instruction[] instructions;
     }
 }
