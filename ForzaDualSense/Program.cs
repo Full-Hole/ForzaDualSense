@@ -14,8 +14,7 @@ using ForzaDualSense.Shared;
 namespace ForzaDualSense
 {
     class Program
-    {
-        public const String VERSION = "0.3.0";
+    {        
         static Settings settings = new Settings();
         static bool verbose = false;
         static bool logToCsv = false;
@@ -403,7 +402,7 @@ namespace ForzaDualSense
                     {
                         case "-v":
                             {
-                                Console.WriteLine($"ForzaDualSense Version {VERSION}");
+                                Console.WriteLine("ForzaDSX Version {0}", typeof(Program).Assembly.GetName().Version);
                                 return;
                             }
                         case "--verbose":
