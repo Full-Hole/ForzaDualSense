@@ -1,4 +1,4 @@
-﻿namespace ForzaDualSense
+﻿namespace ForzaDualSense.Model
 {
     public class DataPacket
     {

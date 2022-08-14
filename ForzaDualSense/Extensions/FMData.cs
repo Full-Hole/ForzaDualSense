@@ -1,6 +1,6 @@
-﻿using static ForzaDualSense.PacketParse;
+﻿using static ForzaDualSense.Shared.PacketParse;
 
-namespace ForzaDualSense
+namespace ForzaDualSense.Extensions
 {
     public static class FMData
     {

@@ -10,6 +10,8 @@ using CsvHelper;
 using System.Globalization;
 using ForzaDualSense.Enums;
 using ForzaDualSense.Shared;
+using ForzaDualSense.Model;
+using ForzaDualSense.Extensions;
 
 namespace ForzaDualSense
 {
@@ -23,6 +25,7 @@ namespace ForzaDualSense
         static int lastThrottleResistance = 1;
         static int lastBrakeResistance = 200;
         static int lastBrakeFreq = 0;
+        public static IPAddress localhost = new IPAddress(new byte[] { 127, 0, 0, 1 });
         //This sends the data to DualSenseX based on the input parsed data from Forza.
         //See DataPacket.cs for more details about what forza parameters can be accessed.
         //See the Enums at the bottom of this file for details about commands that can be sent to DualSenseX
@@ -313,7 +316,7 @@ namespace ForzaDualSense
                 Console.WriteLine($"DSX did not provided a port value. Using configured default({settings.DSX_PORT})");
             }
 
-            endPoint = new IPEndPoint(Triggers.localhost, Convert.ToInt32(portNumber));
+            endPoint = new IPEndPoint(localhost, Convert.ToInt32(portNumber));
             try
             {
                 senderClient.Connect(endPoint);
@@ -344,7 +347,7 @@ namespace ForzaDualSense
             {
                 Console.WriteLine($"Converting Message to JSON");
             }
-            byte[] RequestData = Encoding.ASCII.GetBytes(Triggers.PacketToJson(data));
+            byte[] RequestData = Encoding.ASCII.GetBytes(PacketConverter.PacketToJson(data));
             if (verbose)
             {
                 Console.WriteLine($"{Encoding.ASCII.GetString(RequestData)}");
