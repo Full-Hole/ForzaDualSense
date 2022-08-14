@@ -1,4 +1,4 @@
-﻿namespace ForzaDSX.Enums
+﻿namespace ForzaDualSense.Enums
 {
     //The different trigger Modes. These correlate the values in the DualSenseX UI
     public enum TriggerMode

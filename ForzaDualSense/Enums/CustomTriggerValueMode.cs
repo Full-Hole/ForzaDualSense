@@ -1,4 +1,4 @@
-﻿namespace ForzaDSX.Enums
+﻿namespace ForzaDualSense.Enums
 {
     //Custom Trigger Values. These correspond to the values in the DualSenseX UI
     public enum CustomTriggerValueMode

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using CsvHelper;
 using System.Globalization;
-using ForzaDSX.Enums;
+using ForzaDualSense.Enums;
 
 namespace ForzaDualSense
 {

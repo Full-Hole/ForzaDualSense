@@ -1,4 +1,4 @@
-﻿namespace ForzaDSX.Enums
+﻿namespace ForzaDualSense.Enums
 {
     public enum Trigger
     {
