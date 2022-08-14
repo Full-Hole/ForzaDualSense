@@ -90,6 +90,7 @@ namespace ForzaDualSense
             // }
             // //Some grip lost, begin to vibrate according to the amount of grip lost
             // else 
+            //if (combinedTireSlip > settings.GRIP_LOSS_VAL && data.Brake > settings.BRAKE_VIBRATION__MODE_START)
             if (combinedTireSlip < settings.GRIP_LOSS_VAL && data.Dash.Brake < settings.BRAKE_VIBRATION__MODE_START)
             {
                 freq = settings.MAX_BRAKE_VIBRATION - (int)Math.Floor(Map(combinedTireSlip, settings.GRIP_LOSS_VAL, 1, 0, settings.MAX_BRAKE_VIBRATION));
