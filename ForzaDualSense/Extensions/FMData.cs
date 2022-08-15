@@ -1,10 +1,28 @@
-﻿using static ForzaDualSense.PacketParse;
+﻿using static ForzaDualSense.Shared.PacketParse;
 
-namespace ForzaDualSense
+namespace ForzaDualSense.Extensions
 {
     public static class FMData
     {
         public static int BufferOffset = 0;
+
+        //Support different standards
+        public static bool AdjustToBufferType(int bufferLength)
+        {
+            switch (bufferLength)
+            {
+                case 232: // FM7 sled
+                    return false;
+                case 311: // FM7 dash
+                    FMData.BufferOffset = 0;
+                    return true;
+                case 324: // FH4
+                    FMData.BufferOffset = 12;
+                    return true;
+                default:
+                    return false;
+            }
+        }
 
         // sled
         public static bool IsRaceOn(this byte[] bytes) { return GetSingle(bytes, 0) > 0; }

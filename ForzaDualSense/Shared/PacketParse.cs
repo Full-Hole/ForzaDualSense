@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ForzaDualSense
+namespace ForzaDualSense.Shared
 {
     public static class PacketParse
     {
