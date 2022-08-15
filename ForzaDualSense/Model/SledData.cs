@@ -1,8 +1,9 @@
-﻿namespace ForzaDualSense
+﻿using System;
+
+namespace ForzaDualSense.Model
 {
-    public class DataPacket
+    public sealed class SledData
     {
-        // Sled
         public bool IsRaceOn { get; set; }
         public uint TimestampMS { get; set; } // Can overflow to 0 eventually
         public float EngineMaxRpm { get; set; }
@@ -61,34 +62,5 @@
         public uint CarPerformanceIndex { get; set; } // Between 100 (slowest car) and 999 (fastest car) inclusive
         public uint DrivetrainType { get; set; } // Corresponds to EDrivetrainType; 0 = FWD, 1 = RWD, 2 = AWD
         public uint NumCylinders { get; set; } // Number of cylinders in the engine
-
-        // Dash
-        public float PositionX { get; set; }
-        public float PositionY { get; set; }
-        public float PositionZ { get; set; }
-        public float Speed { get; set; }
-        public float Power { get; set; }
-        public float Torque { get; set; }
-        public float TireTempFl { get; set; }
-        public float TireTempFr { get; set; }
-        public float TireTempRl { get; set; }
-        public float TireTempRr { get; set; }
-        public float Boost { get; set; }
-        public float Fuel { get; set; }
-        public float Distance { get; set; }
-        public float BestLapTime { get; set; }
-        public float LastLapTime { get; set; }
-        public float CurrentLapTime { get; set; }
-        public float CurrentRaceTime { get; set; }
-        public uint Lap { get; set; }
-        public uint RacePosition { get; set; }
-        public uint Accelerator { get; set; }
-        public uint Brake { get; set; }
-        public uint Clutch { get; set; }
-        public uint Handbrake { get; set; }
-        public uint Gear { get; set; }
-        public int Steer { get; set; }
-        public uint NormalDrivingLine { get; set; }
-        public uint NormalAiBrakeDifference { get; set; }
     }
 }
