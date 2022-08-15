@@ -395,85 +395,14 @@ namespace ForzaDualSense
             CsvWriter csv = null;
             try
             {
-                for (int i = 0; i < args.Length; i++)
+                ParseArgs(args);
 
-                {
-                    string arg = args[i];
-
-                    switch (arg)
-                    {
-                        case "-v":
-                            {
-                                Console.WriteLine("ForzaDSX Version {0}", typeof(Program).Assembly.GetName().Version);
-                                return;
-                            }
-                        case "--verbose":
-                            {
-                                Console.WriteLine("Verbose Mode Enabled!");
-                                verbose = true;
-                                break;
-                            }
-                        case "--csv":
-                            {
-                                logToCsv = true;
-                                i++;
-                                if (i >= args.Length)
-                                {
-                                    Console.WriteLine("No Path Entered for Csv file output!! Exiting");
-                                    return;
-                                }
-                                csvFileName = args[i];
-                                break;
-                            }
-                        default:
-                            {
-
-                                break;
-                            }
-                    }
-                }
-                // Build a config object, using env vars and JSON providers.
-                IConfiguration config = new ConfigurationBuilder()
-                    .AddIniFile("appsettings.ini")
-                    .Build();
-                try
-                {
-                    // Get values from the config given their key and their target type.
-                    settings = config.Get<Settings>();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Invalid Configuration File!");
-                    Console.WriteLine(e.Message);
-                    return;
-                }
+                if (!SetConfig())
+                    return;                
+                
                 if (!settings.DISABLE_APP_CHECK)
                 {
-                    int forzaProcesses = Process.GetProcessesByName("ForzaHorizon 5").Length;
-                    forzaProcesses += Process.GetProcessesByName("ForzaHorizon4").Length;
-                    forzaProcesses += Process.GetProcessesByName("ForzaMotorsport7").Length;
-                    Process[] DSX = Process.GetProcessesByName("DualSenseX");
-                    Process[] DSX_2 = Process.GetProcessesByName("DualsenseX");
-                    Process[] cur = Process.GetProcesses();
-                    while (forzaProcesses == 0 || DSX.Length + DSX_2.Length == 0)
-                    {
-                        if (forzaProcesses == 0)
-                        {
-                            Console.WriteLine("No Running Instances of Forza found. Waiting... ");
-
-                        }
-                        else if (DSX.Length == 0)
-                        {
-                            Console.WriteLine("No Running Instances of DualSenseX found. Waiting... ");
-                        }
-                        System.Threading.Thread.Sleep(1000);
-                        forzaProcesses += Process.GetProcessesByName("ForzaHorizon5").Length;
-                        forzaProcesses += Process.GetProcessesByName("ForzaHorizon4").Length; //Guess at name
-                        forzaProcesses += Process.GetProcessesByName("ForzaMotorsport7").Length; //Guess at name
-                        DSX_2 = Process.GetProcessesByName("DualsenseX");
-                        DSX = Process.GetProcessesByName("DualSenseX");
-                    }
-                    Console.WriteLine("Forza and DSX are running. Let's Go!");
+                    CheckRunningProcess();
                 }
                 //Connect to DualSenseX
                 Connect();
@@ -507,17 +436,18 @@ namespace ForzaDualSense
                 {
                     //If Forza sends an update
                     receive = await client.ReceiveAsync();
+                    
                     if (verbose)
                     {
                         Console.WriteLine("recieved Message from Forza!");
                     }
                     //parse data
                     var resultBuffer = receive.Buffer;
-                    if (!AdjustToBufferType(resultBuffer.Length))
+                    if (!FMData.AdjustToBufferType(resultBuffer.Length))
                     {
                         //  return;
                     }
-                    data = ParseData(resultBuffer);
+                    data = PacketConverter.ParseData(resultBuffer);
                     if (verbose)
                     {
                         Console.WriteLine("Data Parsed");
@@ -575,6 +505,96 @@ namespace ForzaDualSense
 
         }
 
+        private static void CheckRunningProcess()
+        {
+            int forzaProcesses = Process.GetProcessesByName("ForzaHorizon 5").Length;
+            forzaProcesses += Process.GetProcessesByName("ForzaHorizon4").Length;
+            forzaProcesses += Process.GetProcessesByName("ForzaMotorsport7").Length;
+            Process[] DSX = Process.GetProcessesByName("DualSenseX");
+            Process[] DSX_2 = Process.GetProcessesByName("DualsenseX");
+            Process[] cur = Process.GetProcesses();
+            while (forzaProcesses == 0 || DSX.Length + DSX_2.Length == 0)
+            {
+                if (forzaProcesses == 0)
+                {
+                    Console.WriteLine("No Running Instances of Forza found. Waiting... ");
+
+                }
+                else if (DSX.Length == 0)
+                {
+                    Console.WriteLine("No Running Instances of DualSenseX found. Waiting... ");
+                }
+                System.Threading.Thread.Sleep(1000);
+                forzaProcesses += Process.GetProcessesByName("ForzaHorizon5").Length;
+                forzaProcesses += Process.GetProcessesByName("ForzaHorizon4").Length; //Guess at name
+                forzaProcesses += Process.GetProcessesByName("ForzaMotorsport7").Length; //Guess at name
+                DSX_2 = Process.GetProcessesByName("DualsenseX");
+                DSX = Process.GetProcessesByName("DualSenseX");
+            }
+            Console.WriteLine("Forza and DSX are running. Let's Go!");
+        }
+
+        // Build a config object, using env vars and JSON providers.
+        private static bool SetConfig()
+        {
+            IConfiguration config = new ConfigurationBuilder()
+                    .AddIniFile("appsettings.ini")
+                    .Build();
+            try
+            {
+                // Get values from the config given their key and their target type.
+                settings = config.Get<Settings>();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid Configuration File!");
+                Console.WriteLine(e.Message);
+                return false;
+            }
+        }
+
+        private static void ParseArgs(string[] args)
+        {
+            for (int i = 0; i < args.Length; i++)
+
+            {
+                string arg = args[i];
+
+                switch (arg)
+                {
+                    case "-v":
+                        {
+                            Console.WriteLine("ForzaDSX Version {0}", typeof(Program).Assembly.GetName().Version);
+                            return;
+                        }
+                    case "--verbose":
+                        {
+                            Console.WriteLine("Verbose Mode Enabled!");
+                            verbose = true;
+                            break;
+                        }
+                    case "--csv":
+                        {
+                            logToCsv = true;
+                            i++;
+                            if (i >= args.Length)
+                            {
+                                Console.WriteLine("No Path Entered for Csv file output!! Exiting");
+                                return;
+                            }
+                            csvFileName = args[i];
+                            break;
+                        }
+                    default:
+                        {
+
+                            break;
+                        }
+                }
+            }
+        }
+
         static float EWMA(float input, float last, float alpha)
         {
             return (alpha * input) + (1 - alpha) * last;
@@ -582,126 +602,6 @@ namespace ForzaDualSense
         static int EWMA(int input, int last, float alpha)
         {
             return (int)Math.Floor(EWMA((float)input, (float)last, alpha));
-        }
-
-        //Parses data from Forza into a DataPacket
-        static DataPacket ParseData(byte[] packet)
-        {
-            return new DataPacket()
-            {
-                Sled = new SledData()
-                {
-                    IsRaceOn = packet.IsRaceOn(),
-                    TimestampMS = packet.TimestampMs(),
-                    EngineMaxRpm = packet.EngineMaxRpm(),
-                    EngineIdleRpm = packet.EngineIdleRpm(),
-                    CurrentEngineRpm = packet.CurrentEngineRpm(),
-                    AccelerationX = packet.AccelerationX(),
-                    AccelerationY = packet.AccelerationY(),
-                    AccelerationZ = packet.AccelerationZ(),
-                    VelocityX = packet.VelocityX(),
-                    VelocityY = packet.VelocityY(),
-                    VelocityZ = packet.VelocityZ(),
-                    AngularVelocityX = packet.AngularVelocityX(),
-                    AngularVelocityY = packet.AngularVelocityY(),
-                    AngularVelocityZ = packet.AngularVelocityZ(),
-                    Yaw = packet.Yaw(),
-                    Pitch = packet.Pitch(),
-                    Roll = packet.Roll(),
-                    NormalizedSuspensionTravelFrontLeft = packet.NormSuspensionTravelFl(),
-                    NormalizedSuspensionTravelFrontRight = packet.NormSuspensionTravelFr(),
-                    NormalizedSuspensionTravelRearLeft = packet.NormSuspensionTravelRl(),
-                    NormalizedSuspensionTravelRearRight = packet.NormSuspensionTravelRr(),
-                    TireSlipRatioFrontLeft = packet.TireSlipRatioFl(),
-                    TireSlipRatioFrontRight = packet.TireSlipRatioFr(),
-                    TireSlipRatioRearLeft = packet.TireSlipRatioRl(),
-                    TireSlipRatioRearRight = packet.TireSlipRatioRr(),
-                    WheelRotationSpeedFrontLeft = packet.WheelRotationSpeedFl(),
-                    WheelRotationSpeedFrontRight = packet.WheelRotationSpeedFr(),
-                    WheelRotationSpeedRearLeft = packet.WheelRotationSpeedRl(),
-                    WheelRotationSpeedRearRight = packet.WheelRotationSpeedRr(),
-                    WheelOnRumbleStripFrontLeft = packet.WheelOnRumbleStripFl(),
-                    WheelOnRumbleStripFrontRight = packet.WheelOnRumbleStripFr(),
-                    WheelOnRumbleStripRearLeft = packet.WheelOnRumbleStripRl(),
-                    WheelOnRumbleStripRearRight = packet.WheelOnRumbleStripRr(),
-                    WheelInPuddleDepthFrontLeft = packet.WheelInPuddleFl(),
-                    WheelInPuddleDepthFrontRight = packet.WheelInPuddleFr(),
-                    WheelInPuddleDepthRearLeft = packet.WheelInPuddleRl(),
-                    WheelInPuddleDepthRearRight = packet.WheelInPuddleRr(),
-                    SurfaceRumbleFrontLeft = packet.SurfaceRumbleFl(),
-                    SurfaceRumbleFrontRight = packet.SurfaceRumbleFr(),
-                    SurfaceRumbleRearLeft = packet.SurfaceRumbleRl(),
-                    SurfaceRumbleRearRight = packet.SurfaceRumbleRr(),
-                    TireSlipAngleFrontLeft = packet.TireSlipAngleFl(),
-                    TireSlipAngleFrontRight = packet.TireSlipAngleFr(),
-                    TireSlipAngleRearLeft = packet.TireSlipAngleRl(),
-                    TireSlipAngleRearRight = packet.TireSlipAngleRr(),
-                    TireCombinedSlipFrontLeft = packet.TireCombinedSlipFl(),
-                    TireCombinedSlipFrontRight = packet.TireCombinedSlipFr(),
-                    TireCombinedSlipRearLeft = packet.TireCombinedSlipRl(),
-                    TireCombinedSlipRearRight = packet.TireCombinedSlipRr(),
-                    SuspensionTravelMetersFrontLeft = packet.SuspensionTravelMetersFl(),
-                    SuspensionTravelMetersFrontRight = packet.SuspensionTravelMetersFr(),
-                    SuspensionTravelMetersRearLeft = packet.SuspensionTravelMetersRl(),
-                    SuspensionTravelMetersRearRight = packet.SuspensionTravelMetersRr(),
-                    CarOrdinal = packet.CarOrdinal(),
-                    CarClass = packet.CarClass(),
-                    CarPerformanceIndex = packet.CarPerformanceIndex(),
-                    DrivetrainType = packet.DriveTrain(),
-                    NumCylinders = packet.NumCylinders(),
-
-                },
-                Dash = new DashData()
-                {
-                    PositionX = packet.PositionX(),
-                    PositionY = packet.PositionY(),
-                    PositionZ = packet.PositionZ(),
-                    Speed = packet.Speed(),
-                    Power = packet.Power(),
-                    Torque = packet.Torque(),
-                    TireTempFl = packet.TireTempFl(),
-                    TireTempFr = packet.TireTempFr(),
-                    TireTempRl = packet.TireTempRl(),
-                    TireTempRr = packet.TireTempRr(),
-                    Boost = packet.Boost(),
-                    Fuel = packet.Fuel(),
-                    Distance = packet.Distance(),
-                    BestLapTime = packet.BestLapTime(),
-                    LastLapTime = packet.LastLapTime(),
-                    CurrentLapTime = packet.CurrentLapTime(),
-                    CurrentRaceTime = packet.CurrentRaceTime(),
-                    Lap = packet.Lap(),
-                    RacePosition = packet.RacePosition(),
-                    Accelerator = packet.Accelerator(),
-                    Brake = packet.Brake(),
-                    Clutch = packet.Clutch(),
-                    Handbrake = packet.Handbrake(),
-                    Gear = packet.Gear(),
-                    Steer = packet.Steer(),
-                    NormalDrivingLine = packet.NormalDrivingLine(),
-                    NormalAiBrakeDifference = packet.NormalAiBrakeDifference(),
-                }
-            };
-        }
-
-        //Support different standards
-        static bool AdjustToBufferType(int bufferLength)
-        {
-            switch (bufferLength)
-            {
-                case 232: // FM7 sled
-                    return false;
-                case 311: // FM7 dash
-                    FMData.BufferOffset = 0;
-                    return true;
-                case 324: // FH4
-                    FMData.BufferOffset = 12;
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-
+        }      
     }
 }
