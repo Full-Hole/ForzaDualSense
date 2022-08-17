@@ -1,2 +1,6 @@
+.github
 ForzaDualSense/bin/*
 ForzaDualSense/obj/*
+
+/ForzaDualSense/.vs
+/.vs

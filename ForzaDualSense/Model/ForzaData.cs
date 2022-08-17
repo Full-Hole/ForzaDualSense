@@ -1,9 +1,14 @@
-﻿namespace ForzaDualSense
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ForzaDualSense.Model
 {
-    public class DataPacket
+    public class ForzaData
     {
-        // Sled
-        public bool IsRaceOn { get; set; }
+        public uint IsRaceOn { get; set; } // = 1 when race is on. = 0 when in menus/race stopped …
         public uint TimestampMS { get; set; } // Can overflow to 0 eventually
         public float EngineMaxRpm { get; set; }
         public float EngineIdleRpm { get; set; }
@@ -62,13 +67,12 @@
         public uint DrivetrainType { get; set; } // Corresponds to EDrivetrainType; 0 = FWD, 1 = RWD, 2 = AWD
         public uint NumCylinders { get; set; } // Number of cylinders in the engine
 
-        // Dash
         public float PositionX { get; set; }
         public float PositionY { get; set; }
         public float PositionZ { get; set; }
-        public float Speed { get; set; }
-        public float Power { get; set; }
-        public float Torque { get; set; }
+        public float Speed { get; set; } // meters per second
+        public float Power { get; set; } // watts
+        public float Torque { get; set; } // newton meter
         public float TireTempFl { get; set; }
         public float TireTempFr { get; set; }
         public float TireTempRl { get; set; }
