@@ -26,10 +26,9 @@ namespace ForzaDualSense
         //Main running thread of program.
         static async Task Main(string[] args)
         {
-            IPEndPoint ipEndPoint = null;
-            UdpClient client = null;
-            StreamWriter writer = null;
-            CsvWriter csv = null;
+            UdpClient? client = null;
+            StreamWriter? writer = null;
+            CsvWriter? csv = null;
             try
             {
                 ParseArgs(args);
@@ -42,12 +41,13 @@ namespace ForzaDualSense
                     CheckRunningProcess();
                 }
                 DSXDataBuilder.Config(verbose, logToCsv, settings);
+
                 //Connect to DualSenseX
                 DSXConnector.Config(verbose, settings);
                 DSXConnector.Connect();
 
                 //Connect to Forza
-                ipEndPoint = new IPEndPoint(IPAddress.Loopback, settings.FORZA_PORT);
+                IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Loopback, settings.FORZA_PORT);
                 client = new UdpClient(settings.FORZA_PORT);
 
                 Console.WriteLine($"The Program is running. Please set the Forza data out to 127.0.0.1, port {settings.FORZA_PORT} and verify the DualSenseX UDP Port is set to {settings.DSX_PORT}");
