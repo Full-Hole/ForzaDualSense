@@ -1,6 +1,6 @@
 ﻿namespace ForzaDualSense.Shared
 {
-    public class Packet
+    public class DSXInstructions
     {
         public Instruction[] instructions;
     }

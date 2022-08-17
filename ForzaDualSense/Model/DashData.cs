@@ -7,9 +7,9 @@ namespace ForzaDualSense.Model
         public float PositionX { get; set; }
         public float PositionY { get; set; }
         public float PositionZ { get; set; }
-        public float Speed { get; set; }
-        public float Power { get; set; }
-        public float Torque { get; set; }
+        public float Speed { get; set; } // meters per second
+        public float Power { get; set; } // watts
+        public float Torque { get; set; } // newton meter
         public float TireTempFl { get; set; }
         public float TireTempFr { get; set; }
         public float TireTempRl { get; set; }

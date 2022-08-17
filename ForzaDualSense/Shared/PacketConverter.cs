@@ -108,14 +108,14 @@ namespace ForzaDualSense.Shared
             };
         }
         
-        public static string PacketToJson(Packet packet)
+        public static string PacketToJson(DSXInstructions packet)
         {
             return JsonConvert.SerializeObject(packet);
         }
 
-        public static Packet JsonToPacket(string json)
+        public static DSXInstructions JsonToPacket(string json)
         {
-            return JsonConvert.DeserializeObject<Packet>(json);
+            return JsonConvert.DeserializeObject<DSXInstructions>(json);
         }
     }
 }
