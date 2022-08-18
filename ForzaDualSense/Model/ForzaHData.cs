@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ForzaDualSense.Model
 {
-    public class ForzaData
+    public class ForzaHData
     {
         public uint IsRaceOn { get; set; } // = 1 when race is on. = 0 when in menus/race stopped …
         public uint TimestampMS { get; set; } // Can overflow to 0 eventually
@@ -66,6 +66,10 @@ namespace ForzaDualSense.Model
         public uint CarPerformanceIndex { get; set; } // Between 100 (slowest car) and 999 (fastest car) inclusive
         public uint DrivetrainType { get; set; } // Corresponds to EDrivetrainType; 0 = FWD, 1 = RWD, 2 = AWD
         public uint NumCylinders { get; set; } // Number of cylinders in the engine
+        public uint CarType { get; set; }
+        public uint ValX { get; set; }
+        public uint ValY { get; set; }
+
 
         public float PositionX { get; set; }
         public float PositionY { get; set; }
@@ -84,15 +88,15 @@ namespace ForzaDualSense.Model
         public float LastLapTime { get; set; }
         public float CurrentLapTime { get; set; }
         public float CurrentRaceTime { get; set; }
-        public uint Lap { get; set; }
-        public uint RacePosition { get; set; }
-        public uint Accelerator { get; set; }
-        public uint Brake { get; set; }
-        public uint Clutch { get; set; }
-        public uint Handbrake { get; set; }
-        public uint Gear { get; set; }
-        public int Steer { get; set; }
-        public uint NormalDrivingLine { get; set; }
-        public uint NormalAiBrakeDifference { get; set; }
+        public ushort Lap { get; set; }
+        public byte RacePosition { get; set; }
+        public byte Accelerator { get; set; }
+        public byte Brake { get; set; }
+        public byte Clutch { get; set; }
+        public byte Handbrake { get; set; }
+        public byte Gear { get; set; }
+        public sbyte Steer { get; set; }
+        public sbyte NormalDrivingLine { get; set; }
+        public sbyte NormalAiBrakeDifference { get; set; }
     }
 }
