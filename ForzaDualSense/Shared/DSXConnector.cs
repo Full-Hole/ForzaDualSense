@@ -17,9 +17,9 @@ namespace ForzaDualSense.Shared
         static Settings _settings;
         public static IPAddress localhost = new IPAddress(new byte[] { 127, 0, 0, 1 });
 
-        public static void Config(bool verbose, Settings settings)
+        public static void Config(Settings settings)
         {
-            _verbose = verbose;
+            _verbose = _settings.VERBOSE;
             _settings = settings;
         }
 

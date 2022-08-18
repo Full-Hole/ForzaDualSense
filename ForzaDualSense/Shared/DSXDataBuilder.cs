@@ -18,10 +18,10 @@ namespace ForzaDualSense.Shared
         static int lastBrakeResistance = 200;
         static int lastBrakeFreq = 0;
 
-        public static void Config(bool verbose, bool logcsv, Settings settings)
+        public static void Config(Settings settings)
         {
-            _verbose = verbose;
-            _logToCsv = logcsv;
+            _verbose = _settings.VERBOSE;
+            _logToCsv = _settings.LOG_TO_CSV;
             _settings = settings;
         }
         //This prepare data to DualSenseX based on the input parsed data from Forza.

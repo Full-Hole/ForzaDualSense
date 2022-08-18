@@ -10,18 +10,18 @@ using System.Globalization;
 using ForzaDualSense.Shared;
 using ForzaDualSense.Model;
 using ForzaDualSense.Extensions;
+using System.Runtime;
 
 namespace ForzaDualSense
 {
     class Program
     {
-        static Settings settings = new Settings();
-        static bool verbose = false;
-        static bool logToCsv = false;
-        static String csvFileName = "";
-        public const int CSV_BUFFER_LENGTH = 120;
-                
-        private static DataPacket data = new DataPacket();        
+        static bool _verbose = false;
+        static Settings _settings = new Settings();
+        static bool _logToCsv = false;
+        static String _csvPath = "";
+
+        private static DataPacket data = new DataPacket();
 
         //Main running thread of program.
         static async Task Main(string[] args)
@@ -31,32 +31,32 @@ namespace ForzaDualSense
             CsvWriter? csv = null;
             try
             {
+                if (!SetConfig())
+                    return;
+
                 ParseArgs(args);
 
-                if (!SetConfig())
-                    return;                
-                
-                if (!settings.DISABLE_APP_CHECK)
+                if (!_settings.DISABLE_APP_CHECK)
                 {
                     CheckRunningProcess();
                 }
-                DSXDataBuilder.Config(verbose, logToCsv, settings);
+                DSXDataBuilder.Config(_settings);
 
                 //Connect to DualSenseX
-                DSXConnector.Config(verbose, settings);
+                DSXConnector.Config(_settings);
                 DSXConnector.Connect();
 
                 //Connect to Forza
-                IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Loopback, settings.FORZA_PORT);
-                client = new UdpClient(settings.FORZA_PORT);
+                IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Loopback, _settings.FORZA_PORT);
+                client = new UdpClient(_settings.FORZA_PORT);
 
-                Console.WriteLine($"The Program is running. Please set the Forza data out to 127.0.0.1, port {settings.FORZA_PORT} and verify the DualSenseX UDP Port is set to {settings.DSX_PORT}");
+                Console.WriteLine($"The Program is running. Please set the Forza data out to 127.0.0.1, port {_settings.FORZA_PORT} and verify the DualSenseX UDP Port is set to {_settings.DSX_PORT}");
                 UdpReceiveResult receive;
-                if (logToCsv)
+                if (_logToCsv)
                 {
                     try
                     {
-                        writer = new StreamWriter(csvFileName);
+                        writer = new StreamWriter(_csvPath);
                         csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
                         csv.WriteHeader<CsvData>();
                         csv.NextRecord();
@@ -75,8 +75,8 @@ namespace ForzaDualSense
                 {
                     //If Forza sends an update
                     receive = await client.ReceiveAsync();
-                    
-                    if (verbose)
+
+                    if (_verbose)
                     {
                         Console.WriteLine("recieved Message from Forza!");
                     }
@@ -87,14 +87,14 @@ namespace ForzaDualSense
                         //  return;
                     }
                     data = PacketConverter.ParseData(resultBuffer);
-                    if (verbose)
+                    if (_verbose)
                     {
                         Console.WriteLine("Data Parsed");
                     }
 
                     //Process and send data to DualSenseX
                     DSXConnector.Send(DSXDataBuilder.GetInstructions(data, csv)); ;
-                    if (logToCsv && count++ > CSV_BUFFER_LENGTH)
+                    if (_logToCsv && count++ > _settings.CSV_BUFFER_LENGTH)
                     {
                         writer?.Flush();
                         count = 0;
@@ -107,7 +107,7 @@ namespace ForzaDualSense
             }
             finally
             {
-                if (verbose)
+                if (_verbose)
                 {
                     Console.WriteLine($"Cleaning Up");
                 }
@@ -127,7 +127,7 @@ namespace ForzaDualSense
                     writer.Close();
                 }
 
-                if (verbose)
+                if (_verbose)
                 {
                     Console.WriteLine($"Cleanup Finished. Exiting...");
                 }
@@ -173,7 +173,11 @@ namespace ForzaDualSense
             try
             {
                 // Get values from the config given their key and their target type.
-                settings = config.Get<Settings>();
+                _settings = config.Get<Settings>();
+                _verbose = _settings.VERBOSE;
+                _logToCsv = _settings.LOG_TO_CSV;
+                _csvPath = _settings.CSV_PATH;
+                
                 return true;
             }
             catch (Exception e)
@@ -201,19 +205,19 @@ namespace ForzaDualSense
                     case "--verbose":
                         {
                             Console.WriteLine("Verbose Mode Enabled!");
-                            verbose = true;
+                            _verbose = true;
                             break;
                         }
                     case "--csv":
                         {
-                            logToCsv = true;
+                            _logToCsv = true;
                             i++;
                             if (i >= args.Length)
                             {
                                 Console.WriteLine("No Path Entered for Csv file output!! Exiting");
                                 return;
                             }
-                            csvFileName = args[i];
+                            _csvPath = args[i];
                             break;
                         }
                     default:
@@ -224,6 +228,6 @@ namespace ForzaDualSense
                 }
             }
         }
-  
+
     }
 }

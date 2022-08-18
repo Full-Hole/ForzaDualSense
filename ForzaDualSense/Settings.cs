@@ -22,5 +22,9 @@ namespace ForzaDualSense
         public bool DISABLE_APP_CHECK { get; set; } = false; //Should we disable the check for running applications?
         public int DSX_PORT { get; set; } = 6969; //Port for DSX Port Listener
         public int FORZA_PORT { get; set; } = 5300; //Port for Forza UDP server
+        public bool VERBOSE = false; //Extended console output
+        public bool LOG_TO_CSV = false; // enable log to csv
+        public string CSV_PATH = @"C:\Temp\fz_data_log.csv"; //path to csv file
+        public int CSV_BUFFER_LENGTH = 120;
     }
 }
