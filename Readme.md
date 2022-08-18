@@ -26,8 +26,9 @@ In Forza, under HUD turn on the UDP data out, with an IP of 127.0.0.1 and a port
 ![image](https://user-images.githubusercontent.com/10986886/147594037-02f9f215-d59f-4e09-9fb4-131cacff2615.png)
 
 In DualSenseX under the controller settings, set the UDP port to your preference and ensure the UDP Port Listener is enabled. The program should automatically use what is set.
-<img width="1250" alt="image" src="https://user-images.githubusercontent.com/10986886/147705786-8d2930fe-6050-48a0-8491-e8318486f426.png">
 
+![image](https://user-images.githubusercontent.com/27782168/174855155-a187a586-0ad9-421d-b277-d1b73ae65a34.png)
+<img width="1250" alt="image" src="https://user-images.githubusercontent.com/10986886/147705786-8d2930fe-6050-48a0-8491-e8318486f426.png">
 It should work.
 
 ## Running Release
@@ -42,11 +43,27 @@ There is a settings file in the release. You can change the settings to your pre
 
 1. Install the .Net Core 6.0 SDK (x64 version) from here: [https://dotnet.microsoft.com/en-us/download/dotnet/6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 2. Clone this repository with git
-3. While in the top level of this repository, run `dotnet run --project ForzaDualSense`.
-   - Top level here refers to the main directory of the repository such that the subdirectories are `.vscode` and `ForzaDualSense`
+3. While in the top level of this repository, run `dotnet run --project ForzaDSX`.
+   - Top level here refers to the main directory of the repository such that the subdirectories are `.vscode` and `ForzaDSX`
+
+## Step by step instructions:
+0. Setup DSX and Forza
+1. Download latest version of ForzaDSX from releases
+2. extract the zip file to a folder (For example desktop)
+3. Run ForzaDSX exe
+4. allow firewall prompts if they show up
+5. Open DSX
+6. Play the game
+
 
 ## Thanks and Credits
 
 [DualSenseX](https://github.com/Paliverse/DualSenseX)
 
 [Forza-Telemetry](https://github.com/austinbaccus/forza-telemetry/tree/main/ForzaCore)
+
+[patmagauran/ForzaDualSense](https://github.com/patmagauran/ForzaDualSense)
+
+[grimsi/ForzaTelemetryReader](https://github.com/grimsi/ForzaTelemetryReader)
+
+[geeooff/forza-data-web](https://github.com/grimsi/ForzaTelemetryReader)
