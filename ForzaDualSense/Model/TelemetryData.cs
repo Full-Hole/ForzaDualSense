@@ -1,4 +1,6 @@
-﻿using System;
+﻿//Big Thanks to grimsi/ForzaTelemetryReader https://github.com/grimsi/ForzaTelemetryReader
+
+using System;
 using System.IO;
 using ForzaDualSense.Enums;
 

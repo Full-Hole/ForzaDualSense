@@ -82,11 +82,8 @@ namespace ForzaDualSense
                     }
                     //parse data
                     var resultBuffer = receive.Buffer;
-                    if (!FMData.AdjustToBufferType(resultBuffer.Length))
-                    {
-                        //  return;
-                    }
-                    data = PacketConverter.ParseData(resultBuffer);
+                    
+                    data = new TelemetryData(resultBuffer);
                     if (_verbose)
                     {
                         Console.WriteLine("Data Parsed");
