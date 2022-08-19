@@ -136,8 +136,7 @@ namespace ForzaDualSense
             forzaProcesses += Process.GetProcessesByName("ForzaHorizon4").Length;
             forzaProcesses += Process.GetProcessesByName("ForzaMotorsport7").Length;
             Process[] DSX = Process.GetProcessesByName("DualSenseX");
-            Process[] DSX_2 = Process.GetProcessesByName("DualsenseX");
-            Process[] cur = Process.GetProcesses();
+            Process[] DSX_2 = Process.GetProcessesByName("DualsenseX");           
             while (forzaProcesses == 0 || DSX.Length + DSX_2.Length == 0)
             {
                 if (forzaProcesses == 0)
