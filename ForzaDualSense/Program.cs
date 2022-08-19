@@ -9,7 +9,7 @@ using CsvHelper;
 using System.Globalization;
 using ForzaDualSense.Shared;
 using ForzaDualSense.Model;
-using ForzaDualSense.Extensions;
+
 using System.Runtime;
 
 namespace ForzaDualSense
@@ -20,8 +20,6 @@ namespace ForzaDualSense
         static Settings _settings = new Settings();
         static bool _logToCsv = false;
         static String _csvPath = "";
-
-        private static DataPacket data = new DataPacket();
 
         //Main running thread of program.
         static async Task Main(string[] args)
@@ -83,7 +81,7 @@ namespace ForzaDualSense
                     //parse data
                     var resultBuffer = receive.Buffer;
                     
-                    data = new TelemetryData(resultBuffer);
+                    var data = new TelemetryData(resultBuffer);
                     if (_verbose)
                     {
                         Console.WriteLine("Data Parsed");
